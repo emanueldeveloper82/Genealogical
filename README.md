@@ -62,6 +62,9 @@ Seguindo padrões rigorosos de desenvolvimento, a API conta com uma suíte de te
    ```bash
    git clone https://github.com/emanueldeveloper82/Genealogical.git
    cd Genealogical
+   python -m venv venv
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload
 
 
 ## 👨‍💻 Autor
