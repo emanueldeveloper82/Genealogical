@@ -1,17 +1,27 @@
 from typing import Optional, List
-from pydantic import BaseModel
+from datetime import date
+from pydantic import BaseModel, field_validator
 
 # DTO de inserção de uma Pessoa
 class PessoaCreate(BaseModel):
     nome: str
     genero: str 
+    data_nascimento: Optional[date] = None
     pai_id: Optional[int] = None
     mae_id: Optional[int] = None
+
+    @field_validator('data_nascimento')
+    @classmethod
+    def data_nao_pode_ser_futura(cls, v: date):
+        if v and v > date.today():
+            raise ValueError('A data de nascimento não pode estar no futuro')
+        return v
 
 # DTO de atualização de uma Pessoa
 class PessoaUpdate(BaseModel):
     nome: Optional[str] = None
     genero: Optional[str] = None
+    data_nascimento: Optional[date] = None
     pai_id: Optional[int] = None
     mae_id: Optional[int] = None
 
@@ -19,7 +29,8 @@ class PessoaUpdate(BaseModel):
 class PessoaRead(BaseModel):
     id: int
     nome: str
-    genero: Optional[str] = None
+    genero: Optional[str]
+    data_nascimento: Optional[date]
     pai_id: Optional[int]
     mae_id: Optional[int]
 
@@ -31,9 +42,10 @@ class PessoaRead(BaseModel):
 class ArvoreAncestral(BaseModel):
     id: int
     nome: str
-    genero: str    
-    pai: Optional["ArvoreAncestral"] = None
-    mae: Optional["ArvoreAncestral"] = None
+    genero: str
+    data_nascimento: Optional[date]    
+    pai: Optional["ArvoreAncestral"]
+    mae: Optional["ArvoreAncestral"]
 
     class Config:
         from_attributes = True
@@ -43,6 +55,7 @@ class ArvoreDescendente(BaseModel):
     id: int
     nome: str
     genero: str
+    data_nascimento: Optional[date]
     filhos: List["ArvoreDescendente"] = []
 
     class Config:

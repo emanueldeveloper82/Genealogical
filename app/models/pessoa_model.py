@@ -1,4 +1,5 @@
 from typing import Optional, List
+from datetime import date
 from sqlmodel import Field, Relationship, SQLModel
 from app.core.config import settings 
 
@@ -10,10 +11,11 @@ class Pessoa(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     nome: str = Field(index=True)
     genero: str = Field(max_length=1)
-    
+    data_nascimento: Optional[date] = Field(default=None)
+
     pai_id: Optional[int] = Field(default=None, foreign_key=f"{settings.DB_SCHEMA}.pessoa.id")
     mae_id: Optional[int] = Field(default=None, foreign_key=f"{settings.DB_SCHEMA}.pessoa.id")
-
+    
     filhos: List["Pessoa"] = Relationship(
         sa_relationship_kwargs={
             "primaryjoin": f"or_(Pessoa.id==Pessoa.pai_id, Pessoa.id==Pessoa.mae_id)",
