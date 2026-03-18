@@ -9,8 +9,7 @@ class Settings(BaseSettings):
     DB_SCHEMA: str
 
     @property
-    def DATABASE_URL(self) -> str:
-        # Aqui fazemos o escape automático de caracteres especiais
+    def DATABASE_URL(self) -> str:        
         from urllib.parse import quote_plus
         password = quote_plus(self.DB_PASS)
         return f"postgresql://{self.DB_USER}:{password}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

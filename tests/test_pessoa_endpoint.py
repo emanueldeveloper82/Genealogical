@@ -1,4 +1,8 @@
 import pytest
+
+from app.core.config import settings
+settings.DB_SCHEMA = None
+
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
@@ -6,6 +10,9 @@ from datetime import date
 from app.main import app  
 from app.core.database import get_session
 from app.models.pessoa_model import Pessoa
+
+
+
 
 # --- CONFIGURAÇÃO DO BANCO DE TESTES (In-Memory) ---
 # Criamos um banco SQLite em memória para não sujar seu banco de dev
@@ -192,3 +199,63 @@ def test_atualizar_pessoa_inexistente(client: TestClient):
     
     assert response.status_code == 404
     assert response.json()["detail"] == "Pessoa não encontrada"
+
+
+
+@pytest.fixture(name="session")
+def session_fixture():
+
+    engine = create_engine(
+        "sqlite://", 
+        connect_args={"check_same_thread": False}, 
+        poolclass=StaticPool
+    )
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session
+
+@pytest.fixture(name="client")
+def client_fixture(session: Session):
+    def get_session_override():
+        return session
+    
+    # Sobrescreve a dependência de sessão do FastAPI
+    app.dependency_overrides[get_session] = get_session_override
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
+def test_gerar_grafico_dot_sucesso(client: TestClient, session: Session):
+    # 1. Preparação: Criar uma pequena família no banco de teste
+    pai = Pessoa(nome="Pedro", genero="M")
+    session.add(pai)
+    session.commit()
+    session.refresh(pai)
+
+    filho = Pessoa(nome="Emanuel", genero="M", pai_id=pai.id)
+    session.add(filho)
+    session.commit()
+    session.refresh(filho)
+
+    # 2. Execução: Chamar o endpoint do gráfico para o filho
+    response = client.get(f"/pessoas/{filho.id}/grafico")
+
+    # 3. Verificação
+    assert response.status_code == 200
+    # Verificamos se o Content-Type é texto puro
+    assert response.headers["content-type"].startswith("text/plain")
+    
+    content = response.text
+    # Validamos a estrutura básica do arquivo DOT
+    assert "digraph Familia {" in content
+    assert f'"{pai.id}" [label="Pedro", fillcolor=lightblue];' in content
+    assert f'"{filho.id}" [label="Emanuel", fillcolor=lightblue];' in content
+    assert f'"{pai.id}" -> "{filho.id}" [label="pai"];' in content
+
+def test_gerar_grafico_pessoa_inexistente(client: TestClient):
+    # Tenta buscar um ID que não existe (999)
+    response = client.get("/pessoas/999/grafico")
+    
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Pessoa não encontrada"
+
