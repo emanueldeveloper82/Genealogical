@@ -7,7 +7,7 @@
 </h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.2.1-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.2.2-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Coverage-93%25-brightgreen?style=for-the-badge" alt="Coverage">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
@@ -16,11 +16,11 @@
 
 ---
 
-## 📚 Sobre o Projeto (v1.2.1)
+## 📚 Sobre o Projeto (v1.2.2)
 
 A **Genealogical API** é um motor de backend especializado em processar e armazenar estruturas complexas de árvores genealógicas. O projeto utiliza o **SQLModel**, permitindo consultas recursivas para mapear ancestrais e descendentes de forma eficiente.
 
-### 🚀 Novidades da Versão 1.2.1
+### 🚀 Novidades da Versão 1.2.2
 * **Visualização de Grafos (DOT):** Novo endpoint que gera a estrutura da árvore em formato DOT (Graphviz) para visualização gráfica das linhagens.
 * **Refatoração de Relacionamentos:** Implementação de auto-relacionamento (`self-referencing`) robusto com tratamento de `overlaps` e integridade referencial.
 * **Blindagem de Testes:** Expansão da suíte de testes unitários e de integração, alcançando a marca de **93% de cobertura global**.
