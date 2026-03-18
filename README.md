@@ -60,7 +60,7 @@ Seguindo padrões rigorosos de desenvolvimento, a API conta com uma suíte de te
 
 1. Clone e entre na pasta:
    ```bash
-   git clone [Link do seu Repositório]
+   git clone https://github.com/emanueldeveloper82/Genealogical.git
    cd Genealogical
 
 
