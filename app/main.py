@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
 from app.api.endpoints import pessoa_endpoint
 from app.core.database import create_db_and_tables
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,6 +16,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Genealogical API",
     lifespan=lifespan 
+)
+
+# Configuração do CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], # URL do seu front Vite
+    allow_credentials=True,
+    allow_methods=["*"], # Permite GET, POST, PUT, DELETE, etc.
+    allow_headers=["*"],
 )
 
 # Incluindo as rotas
