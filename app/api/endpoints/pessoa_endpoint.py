@@ -22,7 +22,7 @@ def criar_pessoa(pessoa_in: PessoaCreate, session: Session = Depends(get_session
     return nova_pessoa
 
 
-@router.patch("/{pessoa_id}", response_model=PessoaUpdate, tags=["Pessoas"])
+@router.patch("/{pessoa_id}", response_model=PessoaRead, tags=["Pessoas"]) 
 def atualizar_pessoa(
     pessoa_id: int, 
     pessoa_in: PessoaUpdate, 
@@ -33,6 +33,7 @@ def atualizar_pessoa(
         raise HTTPException(status_code=404, detail="Pessoa não encontrada")
         
     update_data = pessoa_in.model_dump(exclude_unset=True)
+    print(f"DEBUG: Dados que chegaram para atualizar: {update_data}")
     
     for key, value in update_data.items():
         setattr(db_pessoa, key, value)
@@ -67,7 +68,13 @@ def obter_descendentes(pessoa_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Pessoa não encontrada")
     return pessoa
 
+# Listar todos
+@router.get("/", response_model=list[PessoaRead], tags=["Pessoas"])
+def listar_pessoas(session: Session = Depends(get_session)):    
+    statement = select(Pessoa)
+    return session.exec(statement).all()
 
+# Listar aniversariantes do mês
 @router.get("/aniversariantes/mes", response_model=list[PessoaRead], tags=["Pessoas"])
 def listar_aniversariantes(session: Session = Depends(get_session)):    
     mes_atual = date.today().month    
@@ -79,6 +86,13 @@ def listar_aniversariantes(session: Session = Depends(get_session)):
     results = session.exec(statement).all()
     return results
 
+# Obter pessoa por ID
+@router.get("/{pessoa_id}", response_model=PessoaRead, tags=["Pessoas"])
+def obter_pessoa(pessoa_id: int, session: Session = Depends(get_session)):
+    pessoa = session.get(Pessoa, pessoa_id)
+    if not pessoa:
+        raise HTTPException(status_code=404, detail="Pessoa não encontrada")
+    return pessoa
 
 @router.get("/{pessoa_id}/grafico", response_class=PlainTextResponse, tags=["Visualização"])
 def gerar_grafico_dot(pessoa_id: int, session: Session = Depends(get_session)):

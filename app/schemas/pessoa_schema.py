@@ -1,19 +1,15 @@
 from typing import Optional, List
 from datetime import date
+from sqlmodel import SQLModel
 from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class PessoaBase(BaseModel):
     nome: str
     genero: str
-    data_nascimento: Optional[date] = None
-    
-    @field_validator('data_nascimento')
-    @classmethod
-    def data_nao_pode_ser_futura(cls, v: Optional[date]):
-        if v and v > date.today():
-            raise ValueError('A data de nascimento não pode estar no futuro')
-        return v
+    data_nascimento: Optional[date] = None    
+    pai_id: Optional[int] = None
+    mae_id: Optional[int] = None
 
 
 # DTO de inserção de uma Pessoa
@@ -21,10 +17,12 @@ class PessoaCreate(PessoaBase):
     pass
 
 # DTO de atualização de uma Pessoa
-class PessoaUpdate(PessoaBase):    
+class PessoaUpdate(SQLModel):
     nome: Optional[str] = None
     genero: Optional[str] = None
     data_nascimento: Optional[date] = None
+    pai_id: Optional[int] = None
+    mae_id: Optional[int] = None
 
 # DTO de leitura de uma Pessoa
 class PessoaRead(PessoaBase):
