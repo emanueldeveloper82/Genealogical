@@ -67,7 +67,13 @@ def obter_descendentes(pessoa_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Pessoa não encontrada")
     return pessoa
 
+# Listar todos
+@router.get("/", response_model=list[PessoaRead], tags=["Pessoas"])
+def listar_pessoas(session: Session = Depends(get_session)):    
+    statement = select(Pessoa)
+    return session.exec(statement).all()
 
+# Listar aniversariantes do mês
 @router.get("/aniversariantes/mes", response_model=list[PessoaRead], tags=["Pessoas"])
 def listar_aniversariantes(session: Session = Depends(get_session)):    
     mes_atual = date.today().month    
