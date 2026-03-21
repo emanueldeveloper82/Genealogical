@@ -2,10 +2,12 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ListagemPessoas } from './pages/ListagemPessoas';
 import { CadastroPessoa } from './pages/CadastroPessoa';
 import { LayoutDashboard } from './components/LayoutDashboard'
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />    
       <Routes>
         {/* Usamos um Layout Pai para manter a Sidebar fixa em todas as telas */}
         <Route path="/" element={<LayoutDashboard />}>
@@ -21,6 +23,7 @@ function App() {
           {/* Rotas do CRUD */}
           <Route path="listagem" element={<ListagemPessoas />} />
           <Route path="cadastro" element={<CadastroPessoa />} />
+          <Route path="editar/:id" element={<CadastroPessoa />} />
           
           {/* Futura rota da Árvore */}
           <Route path="arvore" element={<div className="text-white p-10">Em breve: Visualização Gráfica</div>} />

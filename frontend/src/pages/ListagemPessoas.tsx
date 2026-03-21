@@ -2,8 +2,13 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/apiService';
 import { Users, Pencil, Trash2, TreePine } from 'lucide-react';
 import type { Pessoa } from '../types';
+import { toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
+import { ModalConfirmacao } from '../components/ModalConfirmacao';
 
 export const ListagemPessoas = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pessoaSelecionada, setPessoaSelecionada] = useState<{ id: number, nome: string } | null>(null);
   const [pessoas, setPessoas] = useState<Pessoa[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +27,25 @@ export const ListagemPessoas = () => {
     }
   };
 
-  if (loading) return <div className="text-white text-center mt-10">Carregando familiares...</div>;
+
+  const handleExcluirClick = (id: number, nome: string) => {
+    setPessoaSelecionada({ id, nome });
+    setIsModalOpen(true); // Abre o modal em vez do alert
+  };
+  const confirmarExclusao = async () => {
+    if (!pessoaSelecionada) return;
+
+    try {
+      await api.delete(`/pessoas/${pessoaSelecionada.id}`);
+      toast.success(`${pessoaSelecionada.nome} removido(a)!`);
+      setPessoas(prev => prev.filter(p => p.id !== pessoaSelecionada.id));
+    } catch (error) {
+      toast.error('Erro ao excluir.');
+    }
+  };
+
+  if (loading)
+    return <div className="text-white text-center mt-10">Carregando familiares...</div>;
 
   return (
     <div className="max-w-4xl mx-auto mt-10 p-6 bg-slate-800 rounded-lg shadow-xl border border-slate-700">
@@ -54,15 +77,33 @@ export const ListagemPessoas = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex justify-center gap-3">
+
                     <button title="Ver Árvore" className="text-emerald-400 hover:text-emerald-300">
                       <TreePine size={18} />
                     </button>
-                    <button title="Editar" className="text-blue-400 hover:text-blue-300">
+
+                    <Link
+                      to={`/editar/${p.id}`}
+                      title={`Editar ${p.nome}`}
+                      className="text-blue-400 hover:text-blue-300 transition-transform hover:scale-110"
+                    >
                       <Pencil size={18} />
+                    </Link>
+                    
+                    <button
+                      onClick={() => handleExcluirClick(p.id, p.nome)}
+                      title={`Excluir ${p.nome}`}
+                      className="text-red-400 hover:text-red-300 transition-transform hover:scale-110"
+                    >                      
                     </button>
-                    <button title="Excluir" className="text-red-400 hover:text-red-300">
+
+                    <button
+                      onClick={() => handleExcluirClick(p.id, p.nome)}
+                      className="text-red-400 hover:text-red-300"
+                    >
                       <Trash2 size={18} />
                     </button>
+                    
                   </div>
                 </td>
               </tr>
@@ -70,6 +111,14 @@ export const ListagemPessoas = () => {
           </tbody>
         </table>
       </div>
+
+      <ModalConfirmacao
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmarExclusao}
+        nome={pessoaSelecionada?.nome || ''}
+      />
+
     </div>
   );
 };
