@@ -78,9 +78,12 @@ export const ListagemPessoas = () => {
                 <td className="px-6 py-4">
                   <div className="flex justify-center gap-3">
 
-                    <button title="Ver Árvore" className="text-emerald-400 hover:text-emerald-300">
+                    <Link
+                      to="/arvore"
+                      title="Ver Árvore Completa"
+                      className="text-emerald-400 hover:text-emerald-300 transition-transform hover:scale-110">
                       <TreePine size={18} />
-                    </button>
+                    </Link>
 
                     <Link
                       to={`/editar/${p.id}`}
@@ -89,12 +92,12 @@ export const ListagemPessoas = () => {
                     >
                       <Pencil size={18} />
                     </Link>
-                    
+
                     <button
                       onClick={() => handleExcluirClick(p.id, p.nome)}
                       title={`Excluir ${p.nome}`}
                       className="text-red-400 hover:text-red-300 transition-transform hover:scale-110"
-                    >                      
+                    >
                     </button>
 
                     <button
@@ -103,7 +106,7 @@ export const ListagemPessoas = () => {
                     >
                       <Trash2 size={18} />
                     </button>
-                    
+
                   </div>
                 </td>
               </tr>

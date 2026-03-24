@@ -4,8 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import api from '../api/apiService';
 import { UserPlus, Save } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+
 
 const pessoaSchema = z.object({
     nome: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
@@ -20,6 +21,10 @@ export const CadastroPessoa = () => {
     const navigate = useNavigate();
     const isEdit = Boolean(id);
     const [listaPessoas, setListaPessoas] = useState<any[]>([]);
+    const location = useLocation();
+
+    const origin = location.state?.from || 'listagem';
+    const returnPath = origin === 'arvore' ? '/arvore' : '/listagem';
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm<any>({
         resolver: zodResolver(pessoaSchema) as any,
@@ -64,7 +69,7 @@ export const CadastroPessoa = () => {
                 await api.post('/pessoas', payload);
                 toast.success('Familiar cadastrado! 🌳');
             }
-            navigate('/listagem');
+            navigate(returnPath);
         } catch (error) {
             toast.error('Erro ao salvar no servidor.');
         }
@@ -130,7 +135,7 @@ export const CadastroPessoa = () => {
                         >
                             <option value="">Nenhum / Desconhecido</option>
                             {listaPessoas
-                                .filter(p => p.id !== Number(id))
+                                .filter(p => p.id !== Number(id) && p.genero === 'M')
                                 .map(p => (
                                     <option key={p.id} value={p.id}>{p.nome}</option>
                                 ))
@@ -159,7 +164,7 @@ export const CadastroPessoa = () => {
                 <div className="flex gap-4 pt-4">
                     <button
                         type="button"
-                        onClick={() => navigate('/listagem')}
+                        onClick={() => navigate(returnPath)}
                         className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded transition-all"
                     >
                         Cancelar

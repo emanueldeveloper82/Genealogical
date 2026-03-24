@@ -18,15 +18,14 @@ export const LayoutDashboard = () => {
           <Link to="/cadastro" className="flex items-center gap-3 p-3 hover:bg-slate-800 rounded-lg transition-colors text-sm">
             <UserPlus size={18} /> Novo Membro
           </Link>
-          <Link to="/arvore" className="flex items-center gap-3 p-3 hover:bg-slate-800 rounded-lg transition-colors text-sm text-slate-500">
+          <Link to="/arvore" className="flex items-center gap-3 p-3 hover:bg-slate-800 rounded-lg transition-colors text-sm">
             <TreePine size={18} /> Visualizar Árvore
           </Link>
         </nav>
       </aside>
-
-      {/* ÁREA DE CONTEÚDO (Onde as rotas aparecem) */}
+      
       <main className="flex-1 p-8 overflow-y-auto">
-        {/* O Outlet é o equivalente ao <router-outlet> do Angular */}
+        {}
         <Outlet />
       </main>
     </div>
