@@ -1,29 +1,32 @@
 <h1 align="center">
-  🌳 Genealogical API - Sistema de Mapeamento de Árvore Genealógica com Python & FastAPI
+  🌳 Genealogical System - Mapeamento de Árvore Genealógica Full Stack
 </h1>
 
-<h4 align="center">
-  API RESTful de alta performance para gestão de linhagens familiares e relações de parentesco, desenvolvida com SQLModel e foco em recursividade.
+<h4 align="center">  
+  Solução completa para gestão de linhagens familiares, com Backend em Python/FastAPI e Frontend em React/TypeScript.
 </h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.2.2-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.5.6-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Coverage-93%25-brightgreen?style=for-the-badge" alt="Coverage">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind">
 </p>
 
 ---
 
-## 📚 Sobre o Projeto (v1.2.2)
+## 📚 Sobre o Projeto (v1.5.6)
 
-A **Genealogical API** é um motor de backend especializado em processar e armazenar estruturas complexas de árvores genealógicas. O projeto utiliza o **SQLModel**, permitindo consultas recursivas para mapear ancestrais e descendentes de forma eficiente.
+O **Genealogical System** é uma plataforma robusta para mapeamento de parentesco. O sistema permite cadastrar familiares, estabelecer vínculos de paternidade/maternidade e visualizar a estrutura completa da árvore.
 
-### 🚀 Novidades da Versão 1.2.2
-* **Visualização de Grafos (DOT):** Novo endpoint que gera a estrutura da árvore em formato DOT (Graphviz) para visualização gráfica das linhagens.
-* **Refatoração de Relacionamentos:** Implementação de auto-relacionamento (`self-referencing`) robusto com tratamento de `overlaps` e integridade referencial.
-* **Blindagem de Testes:** Expansão da suíte de testes unitários e de integração, alcançando a marca de **93% de cobertura global**.
+### 🚀 Novidades da Versão 1.5.6
+* **Frontend Reativo:** Interface moderna construída com React 18 e Vite, utilizando Tailwind CSS para um design dark mode elegante.
+* **UX de Cadastro:** Implementação de selects dinâmicos para seleção de pais, com filtros inteligentes por gênero e validação de auto-referência.
+* **Persistência Integrada:** Consumo da API FastAPI via Axios com tratamento de estados e notificações em tempo real (React Hot Toast).
 
 ### 💡 Fases Concluídas
 * **Fase 1: Persistência e Relacionamentos:** Modelagem de tabelas autorreferenciadas (Pai/Mãe) em PostgreSQL.
@@ -45,14 +48,22 @@ Seguindo padrões rigorosos de desenvolvimento, a API conta com uma suíte de te
 
 ---
 
-## 💼 Tecnologias e Dependências
+## 💻 Tecnologias e Dependências
 
-| Categoria | Tecnologia | Uso no Projeto |
-| :--- | :--- | :--- |
-| **Framework** | **FastAPI** | Framework web assíncrono de alto desempenho. |
-| **ORM / DTO** | **SQLModel** | Unificação de Pydantic e SQLAlchemy para modelos de dados. |
-| **Visualização** | **DOT / Graphviz** | Geração de estruturas de grafos para representação visual. |
-| **Testes** | **Pytest / Coverage** | Garantia de qualidade e validação de regras de negócio. |
+### **Backend (Python & FastAPI)**
+| Tecnologia | Uso no Projeto |
+| :--- | :--- |
+| **FastAPI** | Framework assíncrono de alta performance. |
+| **SQLModel** | ORM para persistência em PostgreSQL. |
+| **Pytest** | Garantia de qualidade com 93% de cobertura. |
+
+### **Frontend (React & TypeScript)**
+| Tecnologia | Uso no Projeto |
+| :--- | :--- |
+| **React + Vite** | SPA (Single Page Application) veloz e tipada. |
+| **Tailwind CSS** | Estilização utilitária e responsiva. |
+| **React Hook Form** | Gestão de formulários e validações com Zod. |
+| **Lucide React** | Conjunto de ícones minimalistas. |
 
 ---
 
@@ -65,6 +76,11 @@ Seguindo padrões rigorosos de desenvolvimento, a API conta com uma suíte de te
    python -m venv venv
    pip install -r requirements.txt
    uvicorn app.main:app --reload
+
+   cd frontend # ou a pasta do seu front
+   npm install
+   npm run dev
+   ```
 
 
 ## 👨‍💻 Autor
