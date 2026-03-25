@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import { useEffect, useState } from 'react';
 import api from '../api/apiService';
 import { Users, Pencil, Trash2, TreePine } from 'lucide-react';
 import type { Pessoa } from '../types';
@@ -30,7 +31,7 @@ export const ListagemPessoas = () => {
 
   const handleExcluirClick = (id: number, nome: string) => {
     setPessoaSelecionada({ id, nome });
-    setIsModalOpen(true); // Abre o modal em vez do alert
+    setIsModalOpen(true); 
   };
   const confirmarExclusao = async () => {
     if (!pessoaSelecionada) return;

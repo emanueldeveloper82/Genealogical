@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ListagemPessoas } from './pages/ListagemPessoas';
 import { CadastroPessoa } from './pages/CadastroPessoa';
 import { LayoutDashboard } from './components/LayoutDashboard'
@@ -25,10 +26,9 @@ function App() {
           <Route path="listagem" element={<ListagemPessoas />} />
           <Route path="cadastro" element={<CadastroPessoa />} />
           <Route path="editar/:id" element={<CadastroPessoa />} />
-          <Route path="/arvore" element={<VisualizarArvore />} />
-          
-          {/* Futura rota da Árvore */}
+          <Route path="/arvore" element={<VisualizarArvore />} />                    
           <Route path="arvore" element={<div className="text-white p-10">Em breve: Visualização Gráfica</div>} />
+          
         </Route>
       </Routes>
     </BrowserRouter>
