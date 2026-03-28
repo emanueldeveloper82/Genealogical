@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { ReactFlow, Background, Controls, Panel } from '@xyflow/react';
 import type { Node, Edge } from '@xyflow/react';
 import dagre from 'dagre';
@@ -6,6 +6,10 @@ import '@xyflow/react/dist/style.css';
 import api from '../api/apiService';
 import { GitBranch, LayoutTemplate } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import { toPng } from 'html-to-image'; 
+import { FileDown } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 // Configurações do Layout
 const dagreGraph = new dagre.graphlib.Graph();
@@ -42,7 +46,10 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
 export const VisualizarArvore = () => {
     const [nodes, setNodes] = useState<Node[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const areaArvoreRef = useRef<HTMLDivElement>(null);
+    const location = useLocation();
+    const rootIdVindoDoDashboard = location.state?.rootId;
 
     const carregarDados = useCallback(async () => {
         try {
@@ -103,11 +110,50 @@ export const VisualizarArvore = () => {
         }
     }, []);
 
-    useEffect(() => { 
-        carregarDados(); 
+
+
+
+    const exportarPDF = async () => {
+        if (!areaArvoreRef.current) return;
+
+        try {
+            // 1. Oculta controles para um PDF limpo
+            const controles = document.querySelector('.react-flow__controls') as HTMLElement;
+            if (controles) controles.style.display = 'none';
+
+            // 2. Gera a imagem usando html-to-image (mais robusto com oklch)
+            const dataUrl = await toPng(areaArvoreRef.current, {
+                backgroundColor: '#020617',
+                quality: 1,
+                pixelRatio: 2, // Alta definição
+                // Filtro para ignorar elementos que você não quer no print (opcional)
+                filter: (node) => {
+                    const exclusionClasses = ['react-flow__panel', 'react-flow__controls'];
+                    return !exclusionClasses.some(cls => node.classList?.contains(cls));
+                }
+            });
+
+            // 3. Monta o PDF
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`arvore-genealogica-${new Date().getTime()}.pdf`);
+
+            // 4. Devolve os controles à tela
+            if (controles) controles.style.display = 'flex';
+        } catch (error) {
+            console.error("Erro ao gerar PDF com html-to-image:", error);
+            alert("Houve um problema na geração. Tente usar um navegador baseado em Chromium.");
+        }
+    };
+
+    useEffect(() => {
+        carregarDados();
     }, [carregarDados]);
 
-    const onNodeClick = (_: any, node: any) => {   
+    const onNodeClick = (_: any, node: any) => {
         navigate(`/editar/${node.id}`, { state: { from: 'arvore' } });
     };
 
@@ -115,25 +161,36 @@ export const VisualizarArvore = () => {
         <div className="h-screen w-full bg-slate-950 flex flex-col">
             <div className="p-4 flex items-center gap-3 border-b border-slate-800">
                 <GitBranch className="text-emerald-400" />
-                <h2 className="text-xl font-bold text-white">Linhagem Familiar (Modo Estruturado)</h2>
+                <h2 className="text-xl font-bold text-white">Linhagem Familiar</h2>
             </div>
-            <div className="flex-1">
-                {/* Garante que só renderiza se houver nós */}
+            {/* Adicionamos a ref aqui e garantimos altura total */}
+            <div className="flex-1 relative" ref={areaArvoreRef}>
                 {nodes.length > 0 && (
-                    <ReactFlow 
-                        nodes={nodes} 
-                        edges={edges} 
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
                         onNodeClick={onNodeClick}
                         fitView
                     >
                         <Background color="#334155" />
                         <Controls />
-                        <Panel position="top-right">
+                        {/* Adicionado flex e gap-2 para os botões não brigarem */}
+                        <Panel position="top-right" className="flex gap-2 bg-slate-900/50 p-2 rounded-lg">
                             <button
                                 onClick={carregarDados}
                                 className="bg-slate-800 p-2 rounded border border-slate-600 text-white hover:bg-slate-700 flex items-center gap-2"
                             >
                                 <LayoutTemplate size={16} /> Reorganizar
+                            </button>
+
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    exportarPDF();
+                                }}
+                                className="bg-emerald-600 p-2 rounded border border-emerald-500 text-white hover:bg-emerald-500 flex items-center gap-2 transition-colors shadow-lg"
+                            >
+                                <FileDown size={16} /> Exportar PDF
                             </button>
                         </Panel>
                     </ReactFlow>
