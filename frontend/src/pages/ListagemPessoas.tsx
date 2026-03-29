@@ -81,6 +81,7 @@ export const ListagemPessoas = () => {
 
                     <Link
                       to="/arvore"
+                      state={{ rootId: p.id }}
                       title="Ver Árvore Completa"
                       className="text-emerald-400 hover:text-emerald-300 transition-transform hover:scale-110">
                       <TreePine size={18} />

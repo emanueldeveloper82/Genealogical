@@ -14,17 +14,46 @@ import { NodeMenu } from './NodeMenu';
 
 
 // Configurações do Layout
-const dagreGraph = new dagre.graphlib.Graph();
+const dagreGraph = new dagre.graphlib.Graph({ compound: true });
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
+const isConjuge = (p1Id: string, p2Id: string, lista: any[]) => {
+    // Exemplo: se ambos são pais do mesmo filho na lista
+    const temFilhoEmComum = lista.some(p =>
+        (String(p.pai_id) === p1Id && String(p.mae_id) === p2Id) ||
+        (String(p.pai_id) === p2Id && String(p.mae_id) === p1Id)
+    );
+    return temFilhoEmComum;
+};
+
+const getLayoutedElements = (nodes: Node[], edges: Edge[], listaCompleta: any[]) => {
     const nodeWidth = 180;
     const nodeHeight = 60;
 
-    dagreGraph.setGraph({ rankdir: 'TB', nodesep: 70, ranksep: 100 });
+    // 1. Configurar o Grafo para aceitar subgrafos (Compound)
+    dagreGraph.setGraph({
+        rankdir: 'TB',
+        nodesep: 40,   
+        ranksep: 150,  
+        edgesep: 10,
+        marginx: 50,
+        marginy: 50
+    });
+
+    // 2. Mapear clusters primeiro
+    const clustersCriados = new Set<string>();
 
     nodes.forEach((node) => {
-        dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+        const pessoa = listaCompleta.find(p => String(p.id) === node.id);
+
+        // Se a pessoa tem pais, ela pertence a um cluster familiar
+        if (pessoa?.pai_id && pessoa?.mae_id) {
+            const clusterId = `cluster-${pessoa.pai_id}-${pessoa.mae_id}`;
+            dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+            dagreGraph.setParent(node.id, clusterId);
+        } else {
+            dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+        }
     });
 
     edges.forEach((edge) => {
@@ -33,32 +62,66 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
 
     dagre.layout(dagreGraph);
 
-    return nodes.map((node) => {
+    // 3. Gerar os nós finais incluindo os "Group Nodes" para as bordas
+    const layoutedNodes: Node[] = [];
+
+    // Adicionar os retângulos de borda (Clusters)
+    clustersCriados.forEach(clusterId => {
+        const clusterPos = dagreGraph.node(clusterId);
+        layoutedNodes.push({
+            id: clusterId,
+            data: { label: '' },
+            position: { x: clusterPos.x - 225, y: clusterPos.y - 125 },
+            style: {
+                width: 450,
+                height: 250,
+                backgroundColor: 'rgba(16, 185, 129, 0.05)', // Verde suave
+                border: '2px dashed #10b981', // Borda tracejada esmeralda
+                borderRadius: '12px',
+                zIndex: -1,
+            },
+            selectable: false,
+            draggable: false,
+        });
+    });
+
+    // Adicionar as pessoas (Nodes)
+    nodes.forEach((node) => {
         const nodeWithPosition = dagreGraph.node(node.id);
-        return {
+        layoutedNodes.push({
             ...node,
             position: {
                 x: nodeWithPosition.x - nodeWidth / 2,
                 y: nodeWithPosition.y - nodeHeight / 2,
             },
-        };
+        });
     });
+
+    return layoutedNodes;
 };
 
 //Funções de busca Ancestrais
 const buscarAncestrais = (id: string, listaPessoas: any[]): Set<string> => {
     const ids = new Set<string>();
     const p = listaPessoas.find(x => String(x.id) === id);
-    if (p?.pai_id) { ids.add(String(p.pai_id)); buscarAncestrais(String(p.pai_id), listaPessoas).forEach(i => ids.add(i)); }
-    if (p?.mae_id) { ids.add(String(p.mae_id)); buscarAncestrais(String(p.mae_id), listaPessoas).forEach(i => ids.add(i)); }
+    if (!p) return ids;
+
+    if (p.pai_id) {
+        ids.add(String(p.pai_id));
+        buscarAncestrais(String(p.pai_id), listaPessoas).forEach(i => ids.add(i));
+    }
+    if (p.mae_id) {
+        ids.add(String(p.mae_id));
+        buscarAncestrais(String(p.mae_id), listaPessoas).forEach(i => ids.add(i));
+    }
     return ids;
 };
 
 //Funções de busca Descendentes
 const buscarDescendentes = (id: string, listaPessoas: any[]): Set<string> => {
     const ids = new Set<string>();
-    
-    const filhos = listaPessoas.filter(p => 
+
+    const filhos = listaPessoas.filter(p =>
         String(p.pai_id) === id || String(p.mae_id) === id
     );
 
@@ -75,7 +138,7 @@ const buscarDescendentes = (id: string, listaPessoas: any[]): Set<string> => {
 export const VisualizarArvore = () => {
 
     const [menu, setMenu] = useState<{ id: string, x: number, y: number } | null>(null);
-    const [selectedNodeId] = useState<string | null>(null);
+    const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [listaCompleta, setListaCompleta] = useState([]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -92,10 +155,6 @@ export const VisualizarArvore = () => {
 
     const carregarDados = useCallback(async (filtroIds?: Set<string>) => {
         try {
-
-            const response = await api.get('/pessoas/');
-            let dados = response.data;
-
             const res = await api.get('/pessoas/');
             const pessoas = res.data;
 
@@ -107,7 +166,7 @@ export const VisualizarArvore = () => {
 
             if (filtroIds && filtroIds.size > 0) {
                 dadosParaProcessar = pessoas.filter((p: any) =>
-                    filtroIds.has(String(p.id)) || String(p.id) === selectedNodeId
+                    filtroIds.has(String(p.id))
                 );
             }
 
@@ -149,7 +208,7 @@ export const VisualizarArvore = () => {
                 }
             });
 
-            const layouted = getLayoutedElements(initialNodes, initialEdges);
+            const layouted = getLayoutedElements(initialNodes, initialEdges, pessoas);
             setNodes(layouted);
             setEdges(initialEdges);
         } catch (error) {
@@ -197,8 +256,6 @@ export const VisualizarArvore = () => {
 
     useEffect(() => {
         carregarDados();
-
-
     }, [targetId]);
 
     useEffect(() => {
@@ -216,7 +273,6 @@ export const VisualizarArvore = () => {
 
 
     const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
-        // Previne comportamento padrão e abre nosso menu na posição do clique
         event.preventDefault();
         setMenu({
             id: node.id,
@@ -229,17 +285,34 @@ export const VisualizarArvore = () => {
     // Função para disparar as ações
     const handleMenuAction = (type: string, nodeId: string) => {
         setMenu(null);
+        setSelectedNodeId(nodeId);
+
         if (type === 'editar') {
-            navigate(`/editar/${nodeId}`);
-        } else if (type === 'ascendentes') {
-            const ids = buscarAncestrais(nodeId, listaCompleta);
-            ids.add(nodeId);
-            carregarDados(ids);
-        } else if (type === 'descendentes') {
-            const ids = buscarDescendentes(nodeId, listaCompleta);
-            ids.add(nodeId); 
-            carregarDados(ids);
+            navigate(`/editar/${nodeId}`, { state: { from: 'arvore' } });
+            return;
         }
+
+        let idsParaExibir = new Set<string>();
+        idsParaExibir.add(nodeId);
+
+        if (type === 'ascendentes') {
+            const ancestrais = buscarAncestrais(nodeId, listaCompleta);
+            ancestrais.forEach(id => idsParaExibir.add(id));
+        } else if (type === 'descendentes') {
+            const descendentes = buscarDescendentes(nodeId, listaCompleta);
+            descendentes.forEach(id => idsParaExibir.add(id));
+        }
+
+        carregarDados(idsParaExibir);
+
+        setTimeout(() => {
+            const node = nodes.find((n) => n.id === nodeId);
+            if (node) {
+                const x = node.position.x + (node.measured?.width ?? 180) / 2;
+                const y = node.position.y + (node.measured?.height ?? 60) / 2;
+                setCenter(x, y, { zoom: 1.2, duration: 800 });
+            }
+        }, 300);
     };
 
     return (
@@ -248,7 +321,6 @@ export const VisualizarArvore = () => {
                 <GitBranch className="text-emerald-400" />
                 <h2 className="text-xl font-bold text-white">Linhagem Familiar</h2>
             </div>
-            {/* Adicionamos a ref aqui e garantimos altura total */}
             <div className="flex-1 relative" ref={areaArvoreRef}>
                 {nodes.length > 0 && (
                     <ReactFlow
@@ -262,7 +334,7 @@ export const VisualizarArvore = () => {
                     >
                         <Background color="#334155" />
                         <Controls />
-                        {/* Adicionado flex e gap-2 para os botões não brigarem */}
+
                         <Panel position="top-right" className="flex gap-2 bg-slate-900/50 p-2 rounded-lg">
                             <button onClick={() => carregarDados()}>
                                 Reorganizar
