@@ -17,8 +17,8 @@ class Pessoa(SQLModel, table=True):
     genero: str = Field(max_length=1)
     data_nascimento: Optional[date] = Field(default=None)
             
-    pai_id: Optional[int] = Field(default=None, foreign_key="genealogia_db.pessoa.id" if settings.DB_SCHEMA else "pessoa.id")
-    mae_id: Optional[int] = Field(default=None, foreign_key="genealogia_db.pessoa.id" if settings.DB_SCHEMA else "pessoa.id")
+    pai_id: Optional[int] = Field(default=None, foreign_key=f"{settings.DB_SCHEMA}.pessoa.id" if settings.DB_SCHEMA else "pessoa.id")
+    mae_id: Optional[int] = Field(default=None, foreign_key=f"{settings.DB_SCHEMA}.pessoa.id" if settings.DB_SCHEMA else "pessoa.id")
 
     # Ancestrais (Subindo a árvore)
     pai: Optional["Pessoa"] = Relationship(

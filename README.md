@@ -1,5 +1,5 @@
 <h1 align="center">
-  🌳 Genealogical System - Mapeamento de Árvore Genealógica Full Stack
+  🌳 Genealogical System - Mapeamento de Árvore Genealógica Full Stack  
 </h1>
 
 <h4 align="center">  
@@ -7,7 +7,7 @@
 </h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.5.6-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.6.0-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Coverage-93%25-brightgreen?style=for-the-badge" alt="Coverage">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
@@ -19,11 +19,11 @@
 
 ---
 
-## 📚 Sobre o Projeto (v1.5.6)
+## 📚 Sobre o Projeto (v1.6.0)
 
 O **Genealogical System** é uma plataforma robusta para mapeamento de parentesco. O sistema permite cadastrar familiares, estabelecer vínculos de paternidade/maternidade e visualizar a estrutura completa da árvore.
 
-### 🚀 Novidades da Versão 1.5.6
+### 🚀 Novidades da Versão 1.6.0
 * **Frontend Reativo:** Interface moderna construída com React 18 e Vite, utilizando Tailwind CSS para um design dark mode elegante.
 * **UX de Cadastro:** Implementação de selects dinâmicos para seleção de pais, com filtros inteligentes por gênero e validação de auto-referência.
 * **Persistência Integrada:** Consumo da API FastAPI via Axios com tratamento de estados e notificações em tempo real (React Hot Toast).
@@ -48,6 +48,43 @@ Seguindo padrões rigorosos de desenvolvimento, a API conta com uma suíte de te
 
 ---
 
+## 📸 Screenshots da Plataforma
+Aqui você pode visualizar a interface moderna e as ferramentas de exportação do sistema:
+
+<table width="100%" cellspacing="0" cellpadding="5">
+<tr align="center">
+<td><b>Dashboard Analítico</b></td>
+<td><b>Cadastro de Membros</b></td>
+</tr>
+<tr align="center">
+<td><img src="image.png" alt="Dashboard Analítico" width="100%"></td>
+<td><img src="image-1.png" alt="Cadastro de Membros" width="100%"></td>
+</tr>
+<tr align="center">
+<td>Visão geral com indicadores rápidos.</td>
+<td>Formulário para novos membros da linhagem.</td>
+</tr>
+</table>
+
+<table width="100%" cellspacing="0" cellpadding="5">
+
+<tr align="center">
+<td><b>Membros da Família</b></td>
+<td><b>Árvore Completa (PDF)</b></td>
+</tr>
+<tr align="center">
+<td><img src="image-5.png" alt="Membros da Família" width="100%"></td>
+<td><img src="image-4.png" alt="Árvore Completa" width="100%"></td>
+</tr>
+<tr align="center">
+<td>Listagem e gerenciamento de parentes.</td>
+<td>Visualização gráfica e exportação JPEG.</td>
+</tr>
+</table>
+
+
+
+---
 ## 💻 Tecnologias e Dependências
 
 ### **Backend (Python & FastAPI)**
