@@ -1,15 +1,17 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { ReactFlow, Background, Controls, Panel, useNodesState, useEdgesState, useReactFlow, useNodesInitialized } from '@xyflow/react';
 import type { Node, Edge } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
 import api from '../api/apiService';
-import { GitBranch, LayoutTemplate } from 'lucide-react';
+import { GitBranch } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import { toPng } from 'html-to-image';
 import { FileDown } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { NodeMenu } from './NodeMenu';
+
 
 // Configurações do Layout
 const dagreGraph = new dagre.graphlib.Graph();
@@ -43,8 +45,39 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
     });
 };
 
+//Funções de busca Ancestrais
+const buscarAncestrais = (id: string, listaPessoas: any[]): Set<string> => {
+    const ids = new Set<string>();
+    const p = listaPessoas.find(x => String(x.id) === id);
+    if (p?.pai_id) { ids.add(String(p.pai_id)); buscarAncestrais(String(p.pai_id), listaPessoas).forEach(i => ids.add(i)); }
+    if (p?.mae_id) { ids.add(String(p.mae_id)); buscarAncestrais(String(p.mae_id), listaPessoas).forEach(i => ids.add(i)); }
+    return ids;
+};
+
+//Funções de busca Descendentes
+const buscarDescendentes = (id: string, listaPessoas: any[]): Set<string> => {
+    const ids = new Set<string>();
+    
+    const filhos = listaPessoas.filter(p => 
+        String(p.pai_id) === id || String(p.mae_id) === id
+    );
+
+    filhos.forEach(filho => {
+        const filhoId = String(filho.id);
+        ids.add(filhoId);
+        const netos = buscarDescendentes(filhoId, listaPessoas);
+        netos.forEach(netoId => ids.add(netoId));
+    });
+
+    return ids;
+};
+
 export const VisualizarArvore = () => {
-        
+
+    const [menu, setMenu] = useState<{ id: string, x: number, y: number } | null>(null);
+    const [selectedNodeId] = useState<string | null>(null);
+    const [listaCompleta, setListaCompleta] = useState([]);
+
     const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
@@ -57,33 +90,42 @@ export const VisualizarArvore = () => {
     const targetId = location.state?.rootId;
 
 
-    const carregarDados = useCallback(async () => {
+    const carregarDados = useCallback(async (filtroIds?: Set<string>) => {
         try {
+
+            const response = await api.get('/pessoas/');
+            let dados = response.data;
+
             const res = await api.get('/pessoas/');
             const pessoas = res.data;
 
+            setListaCompleta(pessoas);
+
             if (!pessoas || pessoas.length === 0) return;
 
-            const initialNodes: Node[] = pessoas.map((p: any) => ({
+            let dadosParaProcessar = pessoas;
+
+            if (filtroIds && filtroIds.size > 0) {
+                dadosParaProcessar = pessoas.filter((p: any) =>
+                    filtroIds.has(String(p.id)) || String(p.id) === selectedNodeId
+                );
+            }
+
+            const initialNodes: Node[] = dadosParaProcessar.map((p: any) => ({
                 id: String(p.id),
                 data: { label: p.nome },
                 position: { x: 0, y: 0 },
                 style: {
                     background: p.genero === 'M' ? '#1e3a8a' : '#831843',
                     color: '#fff',
-                    border: `2px solid ${p.genero === 'M' ? '#3b82f6' : '#ec4899'}`,
                     borderRadius: '8px',
                     padding: '10px',
                     width: 180,
-                    fontWeight: 'bold',
-                    fontSize: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
                 },
             }));
 
             const initialEdges: Edge[] = [];
+
             pessoas.forEach((p: any) => {
                 if (p.pai_id) {
                     initialEdges.push({
@@ -107,14 +149,13 @@ export const VisualizarArvore = () => {
                 }
             });
 
-            // Aplica o Dagre
             const layouted = getLayoutedElements(initialNodes, initialEdges);
             setNodes(layouted);
             setEdges(initialEdges);
         } catch (error) {
             console.error("Erro ao carregar árvore:", error);
         }
-    }, []);
+    }, [selectedNodeId]);
 
 
     //Funcção para exportar para PDF
@@ -156,7 +197,7 @@ export const VisualizarArvore = () => {
 
     useEffect(() => {
         carregarDados();
-        
+
 
     }, [targetId]);
 
@@ -166,15 +207,39 @@ export const VisualizarArvore = () => {
             if (node) {
                 const x = node.position.x + (node.measured?.width ?? 0) / 2;
                 const y = node.position.y + (node.measured?.height ?? 0) / 2;
-                
+
                 // Faz o zoom suave até o nó selecionado
                 setCenter(x, y, { zoom: 1.2, duration: 800 });
             }
         }
     }, [nodesInitialized, targetId, nodes, setCenter]);
 
-    const onNodeClick = (_: any, node: any) => {
-        navigate(`/editar/${node.id}`, { state: { from: 'arvore' } });
+
+    const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
+        // Previne comportamento padrão e abre nosso menu na posição do clique
+        event.preventDefault();
+        setMenu({
+            id: node.id,
+            x: event.clientX,
+            y: event.clientY,
+        });
+    }, []);
+
+
+    // Função para disparar as ações
+    const handleMenuAction = (type: string, nodeId: string) => {
+        setMenu(null);
+        if (type === 'editar') {
+            navigate(`/editar/${nodeId}`);
+        } else if (type === 'ascendentes') {
+            const ids = buscarAncestrais(nodeId, listaCompleta);
+            ids.add(nodeId);
+            carregarDados(ids);
+        } else if (type === 'descendentes') {
+            const ids = buscarDescendentes(nodeId, listaCompleta);
+            ids.add(nodeId); 
+            carregarDados(ids);
+        }
     };
 
     return (
@@ -192,17 +257,15 @@ export const VisualizarArvore = () => {
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onNodeClick={onNodeClick}
+                        onPaneClick={() => setMenu(null)}
                         fitView
                     >
                         <Background color="#334155" />
                         <Controls />
                         {/* Adicionado flex e gap-2 para os botões não brigarem */}
                         <Panel position="top-right" className="flex gap-2 bg-slate-900/50 p-2 rounded-lg">
-                            <button
-                                onClick={carregarDados}
-                                className="bg-slate-800 p-2 rounded border border-slate-600 text-white hover:bg-slate-700 flex items-center gap-2"
-                            >
-                                <LayoutTemplate size={16} /> Reorganizar
+                            <button onClick={() => carregarDados()}>
+                                Reorganizar
                             </button>
 
                             <button
@@ -216,6 +279,17 @@ export const VisualizarArvore = () => {
                             </button>
                         </Panel>
                     </ReactFlow>
+
+                )}
+
+                {menu && (
+                    <NodeMenu
+                        id={menu.id}
+                        x={menu.x}
+                        y={menu.y}
+                        onClose={() => setMenu(null)}
+                        onAction={handleMenuAction}
+                    />
                 )}
             </div>
         </div>
