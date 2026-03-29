@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { ReactFlow, Background, Controls, Panel } from '@xyflow/react';
+import { useEffect, useCallback, useRef } from 'react';
+import { ReactFlow, Background, Controls, Panel, useNodesState, useEdgesState, useReactFlow, useNodesInitialized } from '@xyflow/react';
 import type { Node, Edge } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
@@ -7,7 +7,7 @@ import api from '../api/apiService';
 import { GitBranch, LayoutTemplate } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
-import { toPng } from 'html-to-image'; 
+import { toPng } from 'html-to-image';
 import { FileDown } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
@@ -44,12 +44,18 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
 };
 
 export const VisualizarArvore = () => {
-    const [nodes, setNodes] = useState<Node[]>([]);
-    const [edges, setEdges] = useState<Edge[]>([]);
+        
+    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+
     const navigate = useNavigate();
     const areaArvoreRef = useRef<HTMLDivElement>(null);
+
+    const { setCenter } = useReactFlow();
+    const nodesInitialized = useNodesInitialized();
     const location = useLocation();
-    const rootIdVindoDoDashboard = location.state?.rootId;
+    const targetId = location.state?.rootId;
+
 
     const carregarDados = useCallback(async () => {
         try {
@@ -111,8 +117,7 @@ export const VisualizarArvore = () => {
     }, []);
 
 
-
-
+    //Funcção para exportar para PDF
     const exportarPDF = async () => {
         if (!areaArvoreRef.current) return;
 
@@ -124,8 +129,8 @@ export const VisualizarArvore = () => {
             // 2. Gera a imagem usando html-to-image (mais robusto com oklch)
             const dataUrl = await toPng(areaArvoreRef.current, {
                 backgroundColor: '#020617',
-                quality: 1,
-                pixelRatio: 2, // Alta definição
+                quality: 4,
+                pixelRatio: 2.5, // Alta definição
                 // Filtro para ignorar elementos que você não quer no print (opcional)
                 filter: (node) => {
                     const exclusionClasses = ['react-flow__panel', 'react-flow__controls'];
@@ -134,11 +139,11 @@ export const VisualizarArvore = () => {
             });
 
             // 3. Monta o PDF
-            const pdf = new jsPDF('l', 'mm', 'a4');
+            const pdf = new jsPDF('l', 'mm', 'a4', true);
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
 
-            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
             pdf.save(`arvore-genealogica-${new Date().getTime()}.pdf`);
 
             // 4. Devolve os controles à tela
@@ -151,7 +156,22 @@ export const VisualizarArvore = () => {
 
     useEffect(() => {
         carregarDados();
-    }, [carregarDados]);
+        
+
+    }, [targetId]);
+
+    useEffect(() => {
+        if (nodesInitialized && targetId) {
+            const node = nodes.find((n) => n.id === String(targetId));
+            if (node) {
+                const x = node.position.x + (node.measured?.width ?? 0) / 2;
+                const y = node.position.y + (node.measured?.height ?? 0) / 2;
+                
+                // Faz o zoom suave até o nó selecionado
+                setCenter(x, y, { zoom: 1.2, duration: 800 });
+            }
+        }
+    }, [nodesInitialized, targetId, nodes, setCenter]);
 
     const onNodeClick = (_: any, node: any) => {
         navigate(`/editar/${node.id}`, { state: { from: 'arvore' } });
@@ -169,6 +189,8 @@ export const VisualizarArvore = () => {
                     <ReactFlow
                         nodes={nodes}
                         edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
                         onNodeClick={onNodeClick}
                         fitView
                     >

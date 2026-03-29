@@ -6,6 +6,7 @@ import { LayoutDashboard } from './components/LayoutDashboard'
 import { Toaster } from 'react-hot-toast';
 import { VisualizarArvore } from './pages/VisualizarArvore';
 import { Dashboard } from './pages/Dashboard';
+import { ReactFlowProvider } from '@xyflow/react';
 
 function App() {
   return (
@@ -23,7 +24,11 @@ function App() {
           <Route path="editar/:id" element={<CadastroPessoa />} />
           
           {/* Rota da Árvore (Removido a duplicidade) */}
-          <Route path="arvore" element={<VisualizarArvore />} /> 
+          <Route path="arvore" element={
+            <ReactFlowProvider>
+              <VisualizarArvore />
+            </ReactFlowProvider>
+          } />
           
         </Route>
       </Routes>

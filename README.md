@@ -7,7 +7,7 @@
 </h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.5.8-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.5.10-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Coverage-93%25-brightgreen?style=for-the-badge" alt="Coverage">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-0.110-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
@@ -19,11 +19,11 @@
 
 ---
 
-## 📚 Sobre o Projeto (v1.5.8)
+## 📚 Sobre o Projeto (v1.5.10)
 
 O **Genealogical System** é uma plataforma robusta para mapeamento de parentesco. O sistema permite cadastrar familiares, estabelecer vínculos de paternidade/maternidade e visualizar a estrutura completa da árvore.
 
-### 🚀 Novidades da Versão 1.5.8
+### 🚀 Novidades da Versão 1.5.10
 * **Frontend Reativo:** Interface moderna construída com React 18 e Vite, utilizando Tailwind CSS para um design dark mode elegante.
 * **UX de Cadastro:** Implementação de selects dinâmicos para seleção de pais, com filtros inteligentes por gênero e validação de auto-referência.
 * **Persistência Integrada:** Consumo da API FastAPI via Axios com tratamento de estados e notificações em tempo real (React Hot Toast).
